@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual env
+venv/
+.env/
+
+# Data (never push raw medical data)
+data/raw/
+data/processed/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Models & experiments
+experiments/models/
+experiments/gradcam_outputs/
+
+# OS
+.DS_Store
