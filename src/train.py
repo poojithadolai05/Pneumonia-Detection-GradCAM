@@ -1,16 +1,25 @@
+import os
+import json
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from src.model import build_cnn
 
+# -------------------
+# Configuration
+# -------------------
 IMG_SIZE = 224
 BATCH_SIZE = 32
 EPOCHS = 25
 DATA_DIR = "data/raw/chest_xray"
+VERSION = "cnn_v1"
 
+# -------------------
+# Data generators
+# -------------------
 def get_data_generators():
     train_gen = ImageDataGenerator(
-        rescale=1./255,
+        rescale=1.0 / 255,
         rotation_range=10,
         width_shift_range=0.05,
         height_shift_range=0.05,
@@ -18,7 +27,7 @@ def get_data_generators():
         horizontal_flip=True
     )
 
-    val_gen = ImageDataGenerator(rescale=1./255)
+    val_gen = ImageDataGenerator(rescale=1.0 / 255)
 
     train_data = train_gen.flow_from_directory(
         f"{DATA_DIR}/train",
@@ -41,6 +50,20 @@ def get_data_generators():
     return train_data, val_data
 
 
+# -------------------
+# Save training history
+# -------------------
+def save_history(history):
+    os.makedirs("experiments/metrics", exist_ok=True)
+    path = f"experiments/metrics/{VERSION}_history.json"
+
+    with open(path, "w") as f:
+        json.dump(history.history, f, indent=4)
+
+
+# -------------------
+# Training
+# -------------------
 def train():
     model = build_cnn()
 
@@ -65,7 +88,7 @@ def train():
             restore_best_weights=True
         ),
         ModelCheckpoint(
-            filepath="experiments/models/best_model.h5",
+            filepath=f"experiments/models/{VERSION}_best.keras",
             monitor="val_recall",
             save_best_only=True,
             mode="max"
@@ -79,7 +102,7 @@ def train():
         callbacks=callbacks
     )
 
-    return history
+    save_history(history)
 
 
 if __name__ == "__main__":
