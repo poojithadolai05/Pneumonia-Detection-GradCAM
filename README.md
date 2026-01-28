@@ -81,6 +81,64 @@ After applying border cropping and visualization tuning:
 This highlights the importance of explainability in medical AI systems.
 
 ---
+## 🔌 FastAPI Inference API
+
+This project includes a lightweight **FastAPI-based inference service** that performs:
+
+- **Pneumonia / Normal prediction** from chest X-rays  
+- **Confidence scoring** for each prediction  
+- **Grad-CAM explainability** to visualize model decision regions  
+
+The model is loaded **once at application startup** to ensure low-latency, production-style inference.
+
+## 📁 API Structure
+
+```text
+api/
+├── main.py     # FastAPI application
+└── utils.py    # Preprocessing & Grad-CAM helper functions
+```
+
+## ▶️ Run the API Locally
+
+Activate the virtual environment and start the FastAPI server:
+
+```bash
+uvicorn api.main:app --reload
+```
+
+The API will be available at:
+
+```bash
+http://127.0.0.1:8000
+```
+Interactive API documentation (Swagger UI):
+
+```bash
+http://127.0.0.1:8000/docs
+```
+### 📤 Prediction Endpoint
+
+**Endpoint**
+
+```bash
+POST /predict
+```
+
+**Input**
+- **Type:** `multipart/form-data`
+- **Field:** `file`
+- **Accepted formats:** Chest X-ray images (`.jpg`, `.png`)
+
+**Output (JSON)**
+```json
+{
+  "prediction": "Pneumonia",
+  "confidence": 0.5363,
+  "gradcam_image_path": "experiments/gradcam_outputs/api_gradcam_output.png"
+}
+```
+
 
 ## 7. Results
 - The model successfully learns discriminative lung features
