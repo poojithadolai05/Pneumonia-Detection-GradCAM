@@ -1,7 +1,16 @@
+# Core ML
 tensorflow>=2.10
 numpy
-matplotlib
 scikit-learn
-opencv-python
 pandas
 tqdm
+
+# Visualization
+matplotlib
+opencv-python
+
+# API & Deployment
+fastapi
+uvicorn
+python-multipart
+pillow
