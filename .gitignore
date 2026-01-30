@@ -3,19 +3,23 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Virtual env
+# Virtual environment
 venv/
 .env/
 
-# Data (never push raw medical data)
+# Data (never push medical datasets)
 data/raw/
 data/processed/
 
 # Jupyter
 .ipynb_checkpoints/
 
-# Models & experiments
-experiments/models/
+# Models (DO NOT push weights)
+models/
+*.h5
+*.keras
+
+# Experiments outputs
 experiments/gradcam_outputs/
 
 # OS
