@@ -1,56 +1,57 @@
-import cv2
-import numpy as np
-from PIL import Image
-from io import BytesIO
+import io
 import os
-
-from src.gradcam import make_gradcam_heatmap, overlay_heatmap
+import numpy as np
+import tensorflow as tf
+import matplotlib.pyplot as plt
+from PIL import Image
 
 IMG_SIZE = 224
-LAST_CONV_LAYER = "conv2d_4"
+LAST_CONV_LAYER_NAME = "conv2d_4"
 
 
 def preprocess_image(image_bytes):
-    """
-    Convert uploaded bytes → model input + original image
-    """
-    image = Image.open(BytesIO(image_bytes)).convert("L")
+    image = Image.open(io.BytesIO(image_bytes)).convert("L")
     image = image.resize((IMG_SIZE, IMG_SIZE))
-
-    img_array = np.array(image) / 255.0
-    img_array = np.expand_dims(img_array, axis=(0, -1))
-
-    return img_array, np.array(image)
+    image = np.array(image) / 255.0
+    image = image.reshape(1, IMG_SIZE, IMG_SIZE, 1)
+    return image
 
 
-def generate_gradcam(model, img_array, original_img, project_root):
-    """
-    Generate and save Grad-CAM, return file path
-    """
-    # Ensure model graph is built
-    _ = model(img_array)
+def generate_gradcam(model, img_array, save_path="outputs/gradcam.png"):
+    os.makedirs("outputs", exist_ok=True)
 
-    heatmap = make_gradcam_heatmap(
-        img_array,
-        model,
-        last_conv_layer_name=LAST_CONV_LAYER
-    )
+    # Get last conv layer
+    last_conv_layer = model.get_layer(LAST_CONV_LAYER_NAME)
 
-    overlay = overlay_heatmap(
-        cv2.cvtColor(original_img, cv2.COLOR_GRAY2BGR),
-        heatmap,
-        alpha=0.25
-    )
+    # Forward pass manually
+    with tf.GradientTape() as tape:
+        x = img_array
+        for layer in model.layers:
+            x = layer(x)
+            if layer.name == LAST_CONV_LAYER_NAME:
+                conv_output = x
+                tape.watch(conv_output)
 
-    output_dir = os.path.join(
-        project_root, "experiments", "gradcam_outputs"
-    )
-    os.makedirs(output_dir, exist_ok=True)
+        prediction = x
+        class_score = prediction[:, 0]
 
-    output_path = os.path.join(
-        output_dir, "api_gradcam_output.png"
-    )
+    # Compute gradients
+    grads = tape.gradient(class_score, conv_output)
+    pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
 
-    cv2.imwrite(output_path, overlay)
+    conv_output = conv_output[0]
+    heatmap = conv_output @ pooled_grads[..., tf.newaxis]
+    heatmap = tf.squeeze(heatmap)
 
-    return output_path
+    heatmap = tf.maximum(heatmap, 0)
+    heatmap /= tf.reduce_max(heatmap) + 1e-8
+
+    # Save heatmap
+    plt.figure(figsize=(4, 4))
+    plt.imshow(heatmap, cmap="jet")
+    plt.axis("off")
+    plt.savefig(save_path, bbox_inches="tight", pad_inches=0)
+    plt.close()
+
+    return save_path
+
