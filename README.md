@@ -1,19 +1,39 @@
-# Pneumonia Detection from Chest X-Rays with Grad-CAM Explainability
+# 🫁 Pneumonia Detection from Chest X-Rays with Grad-CAM Explainability
 
-## 1. Problem Statement
-Pneumonia is a potentially life-threatening lung infection that requires early and accurate diagnosis. 
-Chest X-rays are commonly used for diagnosis, but interpretation can be subjective and time-consuming.
+## 📌 Overview
 
-This project aims to build an end-to-end deep learning pipeline to:
-- Classify chest X-rays as **Pneumonia** or **Normal**
-- Provide **visual explanations** using Grad-CAM to improve model transparency
+This project presents an **end-to-end deep learning system** for detecting **Pneumonia** from chest X-ray images, enhanced with **Grad-CAM–based visual explanations** to improve model interpretability.
+
+A custom **Convolutional Neural Network (CNN)** is trained from scratch for binary classification (**Pneumonia / Normal**).  
+To enable real-world usability, the trained model is deployed as a **FastAPI-based REST API** and hosted on **Hugging Face Spaces**.
+
+Along with predictions and confidence scores, the system generates **Grad-CAM heatmaps** that highlight lung regions influencing the model’s decision, helping bridge the gap between performance and explainability in medical AI.
 
 ---
 
-## 2. Dataset
-- Public Chest X-ray Pneumonia dataset
-- Two classes: `NORMAL`, `PNEUMONIA`
-- Grayscale X-ray images
+## 🎯 Problem Statement
+
+Pneumonia is a serious and potentially life-threatening lung infection that requires **early and accurate diagnosis**.  
+Chest X-rays are widely used for diagnosis, but they present several challenges:
+
+- Manual interpretation is time-consuming  
+- Diagnosis can be subjective, especially in early-stage cases  
+- Deep learning models often act as *black boxes*, reducing trust in clinical settings  
+
+### Objectives of this project:
+- Automatically classify chest X-ray images as **Pneumonia** or **Normal**  
+- Provide **model explainability** using **Grad-CAM** visualizations  
+- Deploy the solution as an **accessible inference API**  
+
+This project aims to improve both **diagnostic support** and **model transparency**.
+
+---
+
+## 📂 Dataset
+
+- Public **Chest X-ray Pneumonia** dataset  
+- Two classes: `NORMAL`, `PNEUMONIA`  
+- Grayscale chest X-ray images  
 
 Dataset structure:
 
@@ -23,148 +43,216 @@ chest_xray/
 ├── val/
 └── test/
 ```
+## 🔄 Project Pipeline
+
+1. **Data Loading and Preprocessing**  
+   - Load chest X-ray images from the dataset  
+   - Convert images to grayscale and resize to a fixed resolution  
+   - Normalize pixel values for stable training  
+
+2. **CNN Model Training (From Scratch)**  
+   - Design and train a custom Convolutional Neural Network  
+   - No transfer learning is used to ensure full architectural transparency  
+   - Binary classification: *Pneumonia* vs *Normal*  
+
+3. **Model Evaluation**  
+   - Evaluate performance using medical-relevant metrics  
+   - Emphasis on **Recall** to reduce false negatives  
+   - Track accuracy, precision, recall, and AUC  
+
+4. **Grad-CAM Explainability**  
+   - Generate Grad-CAM heatmaps from the final convolutional layer  
+   - Visualize lung regions influencing the model’s decision  
+   - Use explainability to identify and reduce dataset bias  
+
+5. **Deployment**  
+   - Wrap the trained model in a **FastAPI** inference service  
+   - Expose REST endpoints for prediction and Grad-CAM generation  
+   - Deploy the API on **Hugging Face Spaces** for public access  
 
 ---
+## 🧠 Model Architecture (CNN Only)
 
-## 3. Project Pipeline
-1. Data loading and preprocessing  
-2. CNN model training from scratch (no transfer learning)  
-3. Model evaluation using medical-relevant metrics  
-4. Grad-CAM based visual explainability  
-5. Experiment tracking and reproducibility  
+A custom **Convolutional Neural Network (CNN)** was designed **from scratch** to ensure full architectural transparency and interpretability, without relying on transfer learning.
 
----
+### Key Components
 
-## 4. Model Architecture (CNN Only)
-A custom Convolutional Neural Network was designed from scratch to ensure full architectural transparency.
+- **Stacked Conv2D layers**  
+  Extract hierarchical spatial features from chest X-ray images  
 
-Key components:
-- Stacked Conv2D layers for feature extraction
-- MaxPooling for spatial downsampling
-- Global Average Pooling to reduce overfitting
-- Fully connected layers for classification
+- **MaxPooling layers**  
+  Reduce spatial dimensions and capture dominant features  
 
-Binary classification with sigmoid activation.
+- **Global Average Pooling (GAP)**  
+  Minimizes overfitting and improves generalization  
 
----
+- **Fully Connected (Dense) layers**  
+  Learn high-level representations for final decision making  
 
-## 5. Training & Evaluation
-- Loss: Binary Cross-Entropy
-- Optimizer: Adam
-- Metrics:
-  - Accuracy
-  - Precision
-  - Recall (critical for pneumonia detection)
-  - AUC
+- **Sigmoid activation**  
+  Enables **binary classification**: *Pneumonia* vs *Normal*  
 
-**Recall is emphasized** to reduce false negatives, which is crucial in medical diagnosis.
+The architecture is intentionally kept simple and interpretable, making it suitable for explainability techniques such as **Grad-CAM**.
 
 ---
+## 📊 Training & Evaluation
 
-## 6. Explainability with Grad-CAM
-Grad-CAM is used to visualize regions of the chest X-ray that influence the model’s prediction.
-### Grad-CAM Visualization Example
+The model was trained using medically relevant optimization strategies and evaluation metrics to ensure reliable performance in a clinical context.
 
-Below is an example Grad-CAM visualization for a Pneumonia-positive chest X-ray.
-Warmer colors indicate regions that contributed more strongly to the model’s prediction.
+### Training Configuration
 
-![Grad-CAM Pneumonia Example](assets/gradcam_pneumonia_example.png)
+- **Loss Function:** Binary Cross-Entropy  
+- **Optimizer:** Adam  
 
-### Initial Observation
-Initial Grad-CAM outputs showed attention on image borders, revealing dataset-related bias.
+### Evaluation Metrics
 
-### Improvement
-After applying border cropping and visualization tuning:
-- Grad-CAM activations focused more on lung regions
-- Reduced reliance on scanner artifacts
+- **Accuracy** – Overall correctness of predictions  
+- **Precision** – Reliability of Pneumonia-positive predictions  
+- **Recall (Sensitivity)** – *Critical for pneumonia detection*  
+- **AUC (ROC Curve)** – Class separability across thresholds  
 
-This highlights the importance of explainability in medical AI systems.
+### Medical Relevance
+
+**Recall is strongly emphasized** to minimize **false negatives**, as failing to detect pneumonia can have serious clinical consequences.  
+This aligns the model evaluation with real-world medical priorities rather than relying on accuracy alone.
+
+---
+## 🔍 Explainability with Grad-CAM
+
+Grad-CAM is used to visualize the regions of a chest X-ray that most strongly influence the model’s prediction, helping interpret the model’s decision-making process.
+
+### 🖼 Grad-CAM Visualization
+
+- Warmer colors indicate regions that contribute more strongly to the prediction  
+- Helps verify whether the model focuses on **lung regions** rather than irrelevant artifacts  
+
+### 🔎 Observations
+
+- Initial Grad-CAM outputs showed strong attention along **image borders**  
+- This behavior revealed the presence of **dataset-related bias**, likely caused by scanner or padding artifacts  
+
+### ✅ Improvements
+
+After Grad-CAM visualization tuning and preprocessing refinements:
+
+- Activations became more concentrated within **lung regions**  
+- Reduced dependence on non-medical image artifacts  
+
+This highlights the critical role of **explainability** in building **trustworthy medical AI systems** and in diagnosing hidden model biases.
 
 ---
 ## 🔌 FastAPI Inference API
 
-This project includes a lightweight **FastAPI-based inference service** that performs:
+This project includes a lightweight **FastAPI-based inference service** that enables real-time model predictions and explainability.
 
-- **Pneumonia / Normal prediction** from chest X-rays  
+The API performs the following tasks:
+
+- **Pneumonia / Normal classification** from chest X-ray images  
 - **Confidence scoring** for each prediction  
-- **Grad-CAM explainability** to visualize model decision regions  
+- **Grad-CAM heatmap generation** to visualize regions influencing the model’s decision  
 
-The model is loaded **once at application startup** to ensure low-latency, production-style inference.
+The trained model is loaded **once at application startup**, ensuring **low-latency**, production-style inference suitable for real-world deployment.
+### 🌐 Live Deployment
 
+The FastAPI inference service is deployed and publicly accessible on **Hugging Face Spaces**:
+
+🔗 **Live API & Demo:**  
+https://huggingface.co/spaces/poojithadolai/pneumonia-gradcam-api
+
+---
 ## 📁 API Structure
+
+The API code is organized in a clean and minimal structure to separate application logic from utility functions.
 
 ```text
 api/
-├── main.py     # FastAPI application
-└── utils.py    # Preprocessing & Grad-CAM helper functions
+├── main.py     # FastAPI application (routing, model loading, inference)
+└── utils.py    # Image preprocessing and Grad-CAM utility functions
 ```
 
 ## ▶️ Run the API Locally
 
-Activate the virtual environment and start the FastAPI server:
+Start the FastAPI server using **Uvicorn**:
 
 ```bash
 uvicorn api.main:app --reload
 ```
-
-The API will be available at:
-
+Once the server is running, access the API at:
 ```bash
 http://127.0.0.1:8000
 ```
-Interactive API documentation (Swagger UI):
+## 📘 Swagger UI (Interactive API Docs)
 
+FastAPI automatically provides interactive documentation at
 ```bash
 http://127.0.0.1:8000/docs
 ```
-### 📤 Prediction Endpoint
+This interface allows you to test endpoints, upload chest X-ray images, and view responses directly from the browser.
 
-**Endpoint**
+## 📤 Prediction Endpoint
 
-```bash
+### 🔗 Endpoint
+
+```http
 POST /predict
 ```
+### 📥 Input
 
-**Input**
 - **Type:** `multipart/form-data`
 - **Field:** `file`
-- **Accepted formats:** Chest X-ray images (`.jpg`, `.png`)
+- **Supported formats:** `.jpg`, `.png` (Chest X-ray images)
 
-**Output (JSON)**
+The uploaded image is preprocessed and passed through the trained CNN model for inference and Grad-CAM generation.
+
+### 📤 Output
+
 ```json
 {
   "prediction": "Pneumonia",
   "confidence": 0.5363,
-  "gradcam_image_path": "experiments/gradcam_outputs/api_gradcam_output.png"
+  "gradcam_image": "outputs/gradcam.png"
 }
 ```
+### 🖼 Grad-CAM Output Access
 
+Grad-CAM images are saved on the server and served statically via:
 
-## 7. Results
-- The model successfully learns discriminative lung features
-- Grad-CAM provides meaningful visual explanations
-- Explainability helped identify and mitigate dataset bias
+```text
+/outputs/gradcam.png
+```
+This allows direct access to the generated Grad-CAM visualization through a browser or API client.
+
+## 📈 Results
+
+- The CNN learns meaningful **lung-related features** from chest X-ray images  
+- **Grad-CAM** provides interpretable visual explanations for model predictions  
+- Explainability helped **identify and reduce dataset bias**
 
 ---
 
-## 8. Limitations
-- No explicit lung segmentation
-- Classification-only model (no lesion localization)
+## ⚠️ Limitations
+
+- No explicit **lung segmentation**
+- **Classification-only** model (no lesion localization)
 - Dataset bias may still exist
 
 ---
 
-## 9. Future Work
-- Integrate lung segmentation for improved localization
-- Train with attention mechanisms
-- Deploy as a FastAPI-based inference service
-- Evaluate on external clinical datasets
+## 🚀 Future Work
+
+- Integrate **lung segmentation** for better focus on lung regions  
+- Improve localization using **attention mechanisms**  
+- Validate performance on **external clinical datasets**  
+- Enhance the **user interface** for clinical usage
 
 ---
 
-## 10. Tech Stack
-- Python
-- TensorFlow / Keras
-- OpenCV
-- NumPy
-- Matplotlib
+## 🛠 Tech Stack
+
+- Python  
+- TensorFlow / Keras  
+- FastAPI  
+- NumPy  
+- Matplotlib  
+- Hugging Face Spaces  
+
